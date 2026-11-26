@@ -72,3 +72,31 @@ jobs:
         with:
           path: state.json
           key: slot-state-${{ github.run_id }}
+  keepalive:
+    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && !inputs.test) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Re-enable this workflow and refresh repository activity
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api -X PUT "repos/${{ github.repository }}/actions/workflows/monitor.yml/enable" || echo "enable call failed (non-fatal)"
+          last=$(git log -1 --format=%ct -- keepalive.txt 2>/dev/null || echo 0)
+          [ -n "$last" ] || last=0
+          now=$(date +%s)
+          if [ $((now - last)) -gt 2592000 ]; then
+            date -u +%Y-%m-%dT%H:%M:%SZ > keepalive.txt
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add keepalive.txt
+            git commit -m "keepalive: refresh repository activity"
+            git push
+          fi
