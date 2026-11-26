@@ -9,3 +9,5 @@ https://t.me/s/usavisaslotsalert | must: h1b,h-1b,h4
 
 # 3) Low-volume immigration news channel (policy/slot-release news).
 https://t.me/s/redbus2us | must: stamping,appointment,slots opened,slot release,consulate
+# 4) checkvisaslots H-1B (Regular) table: location, slot counts, total dates (earliest date is login-gated). Crowdsourced.
+https://checkvisaslots.com/latest-us-visa-availability/h-1b-regular/ | must: chennai,hyderabad,mumbai,kolkata,delhi
