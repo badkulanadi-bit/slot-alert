@@ -1,0 +1,11 @@
+# One public page per line:  URL | must: words that must appear | skip: extra words to ignore
+# Only public pages. Never the visa portal itself.
+
+# 1) Live H-1B availability per Indian city (community data, shows last-seen times). Alert on interview lines only.
+https://appointvisa.com/h1b-visa-slots | must: interview | skip: 0 consular,0 interview
+
+# 2) Public Telegram channel preview: community slot posts (mostly B1/B2 so far - H1B only).
+https://t.me/s/usavisaslotsalert | must: h1b,h-1b,h4
+
+# 3) Low-volume immigration news channel (policy/slot-release news).
+https://t.me/s/redbus2us | must: stamping,appointment,slots opened,slot release,consulate
