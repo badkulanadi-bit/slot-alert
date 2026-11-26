@@ -1,0 +1,74 @@
+name: slot-alert
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # every 10 minutes; GitHub may run it late
+  workflow_dispatch:
+    inputs:
+      test:
+        description: "Send a test alert to all channels"
+        type: boolean
+        default: false
+
+concurrency:
+  group: slot-alert
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Restore previous state
+        uses: actions/cache/restore@v4
+        with:
+          path: state.json
+          key: slot-state-${{ github.run_id }}
+          restore-keys: slot-state-
+
+      - name: Install browser (only if USE_BROWSER=1)
+        if: ${{ vars.USE_BROWSER == '1' }}
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+
+      - name: Send test alert
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.test }}
+        run: python monitor.py --test
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ALERT_EMAIL_TO: ${{ secrets.ALERT_EMAIL_TO }}
+          WHATSAPP_PHONE: ${{ secrets.WHATSAPP_PHONE }}
+          CALLMEBOT_APIKEY: ${{ secrets.CALLMEBOT_APIKEY }}
+          USE_BROWSER: ${{ vars.USE_BROWSER }}
+          HEARTBEAT_HOUR_UTC: "14"
+
+      - name: Check pages
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.test) }}
+        run: python monitor.py
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ALERT_EMAIL_TO: ${{ secrets.ALERT_EMAIL_TO }}
+          WHATSAPP_PHONE: ${{ secrets.WHATSAPP_PHONE }}
+          CALLMEBOT_APIKEY: ${{ secrets.CALLMEBOT_APIKEY }}
+          USE_BROWSER: ${{ vars.USE_BROWSER }}
+          HEARTBEAT_HOUR_UTC: "14"
+
+      - name: Save state
+        if: ${{ always() && hashFiles('state.json') != '' }}
+        uses: actions/cache/save@v4
+        with:
+          path: state.json
+          key: slot-state-${{ github.run_id }}
