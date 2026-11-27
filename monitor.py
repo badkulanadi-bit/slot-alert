@@ -155,7 +155,7 @@ def main():
         time.sleep(random.uniform(1, 4))  # be polite to the sites
     hb = os.environ.get("HEARTBEAT_HOUR_UTC")
     now = datetime.now(timezone.utc)
-    if hb and now.hour == int(hb) and state.get("_heartbeat") != now.strftime("%Y-%m-%d"):
+    if hb and now.hour >= int(hb) and state.get("_heartbeat") != now.strftime("%Y-%m-%d"):
         send_all("Slot-alert is still running", f"Daily check-in, {now:%Y-%m-%d}. No action needed.", dry, links=False)
         state["_heartbeat"] = now.strftime("%Y-%m-%d")
     STATE.write_text(json.dumps(state))
